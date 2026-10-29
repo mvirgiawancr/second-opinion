@@ -1,0 +1,74 @@
+[
+  {
+    "id": "rust-overshirt",
+    "name": "Rust linen overshirt",
+    "category": "outer",
+    "prompt": "a plain rust orange linen overshirt, long sleeves, open front, chest pockets"
+  },
+  {
+    "id": "camel-knit",
+    "name": "Camel merino crewneck",
+    "category": "upper_body",
+    "prompt": "a plain camel tan merino wool crewneck sweater, long sleeves, ribbed cuffs"
+  },
+  {
+    "id": "olive-shirt",
+    "name": "Olive cotton shirt",
+    "category": "upper_body",
+    "prompt": "a plain olive green cotton long-sleeve shirt, buttoned to the collar, chest pocket"
+  },
+  {
+    "id": "cream-oxford",
+    "name": "Cream oxford shirt",
+    "category": "upper_body",
+    "prompt": "a plain cream off-white oxford cotton long-sleeve shirt, buttoned, crisp collar"
+  },
+  {
+    "id": "navy-oxford",
+    "name": "Navy oxford shirt",
+    "category": "upper_body",
+    "prompt": "a plain navy blue oxford cotton long-sleeve shirt, buttoned, crisp collar"
+  },
+  {
+    "id": "ice-linen",
+    "name": "Icy blue linen shirt",
+    "category": "upper_body",
+    "prompt": "a plain pale ice blue linen long-sleeve shirt, relaxed fit, buttoned"
+  },
+  {
+    "id": "charcoal-knit",
+    "name": "Charcoal knit",
+    "category": "upper_body",
+    "prompt": "a plain charcoal grey fine-gauge knit sweater, long sleeves, crew neck"
+  },
+  {
+    "id": "mustard-cord",
+    "name": "Mustard corduroy shirt",
+    "category": "upper_body",
+    "prompt": "a plain mustard yellow corduroy long-sleeve shirt, buttoned, chest pockets"
+  },
+  {
+    "id": "forest-bomber",
+    "name": "Forest bomber",
+    "category": "outer",
+    "prompt": "a plain deep forest green nylon bomber jacket, zip front, ribbed collar and cuffs"
+  },
+  {
+    "id": "plum-coat",
+    "name": "Plum wool coat",
+    "category": "outer",
+    "prompt": "a plain deep plum purple wool overcoat, notch lapels, single breasted, long sleeves"
+  },
+  {
+    "id": "stone-jacket",
+    "name": "Stone canvas jacket",
+    "category": "outer",
+    "prompt": "a plain stone beige cotton canvas chore jacket, button front, patch pockets"
+  },
+  {
+    "id": "black-leather",
+    "name": "Black leather jacket",
+    "category": "outer",
+    "prompt": "a plain black leather biker jacket, asymmetric zip, silver hardware, long sleeves"
+  }
+]
