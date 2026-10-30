@@ -48,6 +48,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Paper tooth. Without this the page is a flat rectangle of beige, which is the
+   difference between "printed sheet" and "web page with a warm background". */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 ::selection {
   background: var(--stamp);
   color: var(--paper);
@@ -282,18 +295,66 @@ button {
 /* ---------- upload ---------- */
 
 .upload-head {
-  padding: var(--gap-24) 0 var(--gap-12);
+  padding: var(--gap-16) 0 var(--gap-12);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: var(--gap-12);
+  align-items: end;
+}
+
+.upload-copy {
   display: flex;
   flex-direction: column;
   gap: var(--gap-6);
+  padding-bottom: var(--gap-4);
+}
+
+.upload-example {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.example-print {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--hairline);
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+
+.example-print img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.upload-example figcaption {
+  font-size: 10px;
+  color: var(--ink-muted);
+  line-height: 1.4;
 }
 
 .drop-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr minmax(0, 0.86fr);
   gap: var(--gap-6);
   padding-bottom: var(--gap-8);
-  max-width: 720px;
+  align-items: start;
+}
+
+.drop-row .method {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+  border-left: 1px solid var(--hairline);
+  padding-left: var(--gap-4);
+  gap: var(--gap-3);
+  max-width: none;
 }
 
 .drop {
@@ -363,13 +424,72 @@ button {
   color: var(--ink-muted);
 }
 
+/* ---------- the wardrobe, shown before it is asked for ---------- */
+
+.wardrobe {
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--gap-4);
+  margin-top: var(--gap-4);
+  padding-bottom: var(--gap-8);
+}
+
+.wardrobe-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--gap-4);
+}
+
+.wardrobe-head .mono {
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.wardrobe-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--gap-2);
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: var(--gap-2);
+}
+
+.wardrobe-strip li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wardrobe-print {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--paper-deep);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+.wardrobe-print img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wardrobe-strip .mono {
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
 .upload-actions {
   display: flex;
   align-items: center;
   gap: var(--gap-4) var(--gap-6);
-  padding-bottom: var(--gap-16);
+  padding-bottom: var(--gap-12);
   flex-wrap: wrap;
-  max-width: 720px;
 }
 
 .upload-actions .why {
@@ -397,9 +517,127 @@ button {
 .verdict-screen {
   padding: var(--gap-16) 0 var(--gap-12);
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   gap: var(--gap-16);
   align-items: start;
+}
+
+.subject-line {
+  color: var(--ink-muted);
+  margin-bottom: var(--gap-4);
+}
+
+.verdict-lead {
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: var(--gap-4);
+  background: var(--paper-print);
+  border: 1px solid var(--hairline);
+  padding: var(--gap-4);
+  align-items: start;
+}
+
+.subject-print {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+  background: var(--paper-deep);
+}
+
+.subject-print img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.subject-body .panel-title {
+  margin-bottom: var(--gap-3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.subject-body .panel-title .mono {
+  font-size: 10px;
+}
+
+.subject-body .swatches {
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--gap-2);
+  margin-top: 0;
+}
+
+.subject-body .swatch .mono {
+  font-size: 10px;
+}
+
+/* ---------- the palette: the whole product as one graphic ---------- */
+
+.palette {
+  border-top: 2px solid var(--hairline-strong);
+  padding-top: var(--gap-4);
+  margin-bottom: var(--gap-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-4);
+}
+
+.palette-row {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: var(--gap-4);
+  align-items: start;
+}
+
+.palette-key {
+  color: var(--ink-muted);
+  padding-top: 2px;
+}
+
+.palette-key .mono {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: var(--gap-2);
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+/* Fixed height, not an aspect ratio: these are colour chips on a bar, and a
+   ratio makes them grow into blocks that dwarf the garment names beside them. */
+.chip i {
+  display: block;
+  height: 56px;
+  border: 1px solid rgba(27, 24, 19, 0.14);
+}
+
+.chip:hover i {
+  border-color: var(--ink);
+}
+
+.chip .mono {
+  font-size: 10px;
+  color: var(--ink-muted);
 }
 
 .verdict-line {
@@ -493,6 +731,57 @@ button {
   flex-wrap: wrap;
 }
 
+.reasons {
+  margin-top: var(--gap-12);
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--gap-3);
+}
+
+.reasons .label {
+  color: var(--ink-muted);
+}
+
+.reasons ol {
+  list-style: none;
+  margin: var(--gap-3) 0 0;
+  padding: 0;
+}
+
+.reasons li + li {
+  border-top: 1px solid var(--hairline);
+}
+
+.reasons button {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: var(--gap-3);
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  padding: var(--gap-3) 0;
+  min-height: 44px;
+}
+
+.reasons button:hover .reasons-name {
+  text-decoration: underline;
+  text-decoration-color: var(--stamp);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+.reasons .mono {
+  color: var(--ink-muted);
+}
+
+.reasons-name {
+  color: var(--ink);
+}
+
+.reasons-why {
+  color: var(--stamp-ink);
+  text-align: right;
+}
+
 /* ---------- the sheet ---------- */
 
 .sheet-wrap {
@@ -501,20 +790,116 @@ button {
   padding: 0 var(--gap-8) var(--gap-24);
 }
 
-.sheet-head {
+.sheet-masthead {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: var(--gap-4) var(--gap-6);
+  align-items: end;
+  padding: var(--gap-6) 0 var(--gap-4);
+  border-bottom: 2px solid var(--hairline-strong);
+  margin-bottom: var(--gap-6);
+}
+
+.masthead-print {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+  background: var(--paper-deep);
+}
+
+.masthead-print img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.masthead-title {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.masthead-title .mono {
+  color: var(--ink-muted);
+}
+
+.masthead-figures {
+  display: flex;
   gap: var(--gap-6);
-  padding: var(--gap-8) 0 var(--gap-4);
-  flex-wrap: wrap;
+  margin: 0;
+  align-items: flex-end;
+}
+
+.masthead-figures div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.masthead-figures dt {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.masthead-figures dd {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 32px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .sheet-body {
+  position: relative;
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr);
   border: 2px solid var(--hairline-strong);
   background: var(--paper-print);
+}
+
+/* Crop marks. The sheet is a printed document; these say so in the margin
+   without adding a single word. */
+.reg-mark {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 0 solid var(--hairline-strong);
+  pointer-events: none;
+}
+
+.reg-mark.tl {
+  top: -12px;
+  left: -12px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.reg-mark.tr {
+  top: -12px;
+  right: -12px;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+
+.reg-mark.bl {
+  bottom: -12px;
+  left: -12px;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+
+.reg-mark.br {
+  bottom: -12px;
+  right: -12px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
 }
 
 .sheet-index {
@@ -551,6 +936,7 @@ button {
 
 .tile-print {
   position: relative;
+  display: block;
   background: var(--paper-deep);
   border: 1px solid var(--hairline);
   aspect-ratio: 4 / 5;
@@ -568,17 +954,11 @@ button {
   display: block;
 }
 
-/* A full look is bigger than a shirt: two columns and two rows, at the same 4:5
-   print ratio. The source is 3:4, so cover crops only a sliver top and bottom —
-   a long coat stays whole. */
+/* A full look is bigger than a shirt: two columns and two rows. At 4:5 a
+   2-column print is exactly two rows tall, so the grid needs no special case. */
 .tile.is-look {
   grid-column: span 2;
   grid-row: span 2;
-}
-
-.tile.is-look .tile-print {
-  aspect-ratio: auto;
-  height: 100%;
 }
 
 .tile-pending .tile-print {
@@ -604,7 +984,7 @@ button {
   border: 1px solid var(--hairline);
 }
 
-.tile-failed .tile-print p {
+.tile-fail-note {
   font-size: 12px;
   font-weight: 500;
   color: var(--ink-muted);
@@ -619,12 +999,20 @@ button {
 }
 
 .tile-cap .mono {
-  color: var(--ink-muted);
+  color: var(--ink);
   flex: 0 0 auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 .tile-cap .caption {
   color: var(--ink);
+}
+
+/* No strikethrough on the name: at caption size it reads as an underline, and
+   the stamp already carries the verdict. One mark per rejection, not two. */
+.tile.is-rejected .tile-print {
+  border-color: var(--hairline-strong);
 }
 
 .tile-meta {
@@ -720,20 +1108,121 @@ button {
 
 .detail {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   gap: var(--gap-12);
-  padding: var(--gap-12) 0 var(--gap-24);
+  padding: var(--gap-8) 0 var(--gap-24);
   align-items: start;
 }
 
+/* Garment beside the try-on: the comparison is the evidence. */
+.detail-prints {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-4);
+}
+
+.detail-fig {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.detail-fig .label {
+  color: var(--ink-muted);
+}
+
 .detail-print {
+  position: relative;
+  aspect-ratio: 4 / 5;
   border: 1px solid var(--hairline);
   background: var(--paper-print);
+  overflow: hidden;
 }
 
 .detail-print img {
+  position: absolute;
+  inset: 0;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   display: block;
+}
+
+/* Neighbouring garments in the same category: the sheet answered "does this
+   one work", this answers "then what does". */
+.variants {
+  margin-top: var(--gap-4);
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--gap-3);
+}
+
+.variants .label {
+  color: var(--ink-muted);
+}
+
+.variants-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap-3);
+  margin-top: var(--gap-3);
+}
+
+.variant {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.variant-print {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+  background: var(--paper-deep);
+}
+
+.variant-print img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.variant:hover .variant-print {
+  border-color: var(--ink);
+}
+
+.variant .mono {
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+.variant .caption {
+  font-size: 12px;
+}
+
+.detail-table {
+  border-top: 1px solid var(--hairline);
+}
+
+.detail-math {
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--gap-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.detail-math .label {
+  color: var(--ink-muted);
+}
+
+.detail-math .mono {
+  color: var(--ink);
 }
 
 .detail-body {
@@ -775,12 +1264,13 @@ button {
 }
 
 .detail-wait {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   gap: var(--gap-2);
   align-items: flex-start;
-  padding: var(--gap-6);
-  aspect-ratio: 4 / 5;
+  padding: var(--gap-4);
   justify-content: flex-end;
   background-image: repeating-linear-gradient(
     135deg,
@@ -799,6 +1289,10 @@ button {
 @media (max-width: 1119px) {
   .tiles {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .wardrobe-strip {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--gap-3);
   }
 }
 
@@ -821,13 +1315,47 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .upload-head {
-    padding-top: var(--gap-16);
+    padding-top: var(--gap-12);
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: var(--gap-8);
+  }
+  .drop-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .drop-row .method {
+    grid-column: 1 / -1;
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--hairline);
+    padding-top: var(--gap-3);
   }
   .detail {
     grid-template-columns: minmax(0, 1fr);
   }
   .swatches {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .subject-card {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+  .palette-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gap-2);
+  }
+  .palette-key .mono {
+    display: inline;
+    margin-left: var(--gap-2);
+  }
+  .chips {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+  }
+  .sheet-masthead {
+    grid-template-columns: 56px minmax(0, 1fr);
+    row-gap: var(--gap-4);
+  }
+  .masthead-figures {
+    grid-column: 1 / -1;
+    gap: var(--gap-8);
   }
 }
 
@@ -841,9 +1369,28 @@ button {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--gap-4);
   }
+  .drop-row .method {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--hairline);
+    padding-top: var(--gap-3);
+  }
   /* Stacked 4:5 boxes would fill two phone screens before the button. */
   .drop {
     aspect-ratio: 3 / 2;
+  }
+  /* The example is the pitch, so it survives the stack — beside the headline,
+     where it can still be seen without scrolling. */
+  .upload-head {
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: var(--gap-4);
+    padding-top: var(--gap-8);
+  }
+  .upload-example figcaption {
+    display: none;
+  }
+  .upload-head .lead {
+    font-size: 16px;
   }
   .tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -866,6 +1413,42 @@ button {
   }
   .verdict-xl {
     font-size: 38px;
+  }
+  .subject-card {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+  .subject-body .swatches {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .chips {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .chip i {
+    height: 44px;
+  }
+  .reasons button {
+    grid-template-columns: 28px minmax(0, 1fr);
+    row-gap: 2px;
+  }
+  .reasons-why {
+    grid-column: 2;
+    text-align: left;
+  }
+  /* Fourteen tiny frames cannot be read at phone width, so the strip becomes a
+     strip: one row you swipe through, like a real contact sheet. */
+  .wardrobe-strip {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 72px;
+    overflow-x: auto;
+    padding-bottom: var(--gap-3);
+    scrollbar-width: thin;
+  }
+  .masthead-figures dd {
+    font-size: 26px;
+  }
+  .detail-prints {
+    gap: var(--gap-2);
   }
   .topstrip {
     padding: 0 var(--gap-4);

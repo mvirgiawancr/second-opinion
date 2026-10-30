@@ -64,6 +64,14 @@ public/catalog/           generated garment photographs
 spike/                    the experiments that produced the numbers above
 ```
 
+## Design decisions worth defending
+
+- **Paper tooth over flat colour.** The canvas carries a 4.5% multiply grain. Without it the page reads as a beige web page; with it, as a printed sheet. This is the single change that moved the whole thing from "tidy" to "designed".
+- **The rejection is the interface.** Rejected tiles are stamped and their reasons listed *before* the sheet is opened. If the list of failures is not convincing, nothing downstream matters.
+- **The arithmetic is on the page.** The detail view prints hue, chroma and ΔL with the thresholds. It is the cheapest way to prove the verdict is computed and not narrated.
+- **No strikethrough on rejected names.** At caption size a line-through reads as an underline. One mark per rejection — the stamp.
+- **Full-look tiles span two columns and two rows.** At 4:5, a double-width print is exactly two rows tall, so the grid needs no special case and the long coats are never cropped.
+
 ## Built for
 
 YouCam API Skin AI & eCommerce VTO Hackathon, 2026. Categories: Skin AI, Apparel VTO, Beauty, Hair & Beard.
