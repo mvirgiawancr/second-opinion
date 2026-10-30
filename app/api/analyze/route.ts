@@ -38,9 +38,10 @@ export async function POST(req: NextRequest) {
     // photo with error_face_angle_downward, which is why the product asks for two.
     const colors = await analyzeFace(selfieId);
 
-    // bodyId goes back to the client, which passes it to /api/tryon. It is an
-    // opaque YouCam file id, so no server-side session or storage is needed.
-    return Response.json({ bodyId, colors });
+    // bodyId and selfieId go back to the client, which passes them to /api/tryon
+    // and /api/look. They are opaque YouCam file ids, so no server-side session
+    // or storage is needed.
+    return Response.json({ bodyId, selfieId, colors });
   } catch (e) {
     const err = e as YouCamError;
     return Response.json(

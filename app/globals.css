@@ -580,6 +580,136 @@ button {
   font-size: 10px;
 }
 
+/* ---------- above the collar: the same rule, worn on the face ---------- */
+
+.face-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--gap-8);
+  align-items: start;
+  padding: var(--gap-8) 0 var(--gap-16);
+}
+
+.look-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-4) var(--gap-3);
+}
+
+.look-fig {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.look-print {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--hairline);
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+
+.look-print.is-against {
+  border-color: var(--hairline-strong);
+}
+
+.look-print img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.look-wait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--gap-3);
+  font-size: 11px;
+  font-family: var(--font-mono), monospace;
+  color: var(--ink-muted);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--paper-deep) 0 6px,
+    var(--paper-print) 6px 12px
+  );
+}
+
+.look-fig .caption {
+  color: var(--ink);
+  padding-top: 2px;
+}
+
+.look-fig .mono {
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+.look-fig .look-kind {
+  padding-top: var(--gap-2);
+  color: var(--ink);
+}
+
+.face-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-4);
+  border-left: 1px solid var(--hairline);
+  padding-left: var(--gap-6);
+}
+
+.face-aside .subject-line {
+  margin-bottom: 0;
+}
+
+.face-aside .method {
+  margin-top: var(--gap-2);
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--gap-3);
+  gap: var(--gap-2);
+}
+
+.face-aside .btn-primary {
+  align-self: flex-start;
+  margin-top: var(--gap-2);
+}
+
+@media (max-width: 1119px) {
+  .face-grid {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: var(--gap-6);
+  }
+}
+
+@media (max-width: 899px) {
+  .face-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .face-aside {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--hairline);
+    padding-top: var(--gap-4);
+  }
+  .face-aside .verdict-lg {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 559px) {
+  .look-fig .mono {
+    font-size: 9px;
+  }
+  .look-fig .caption {
+    font-size: 12px;
+  }
+}
+
 /* ---------- the palette: the whole product as one graphic ---------- */
 
 .palette {

@@ -2,11 +2,24 @@
 
 import { useRef, useState } from 'react';
 import { CATALOG, CATEGORY_LABEL, garmentSrc, type Garment } from '@/lib/catalog';
-import { contrast, toLab, undertoneOf, verdict, warmth, type FaceColors } from '@/lib/color';
+import {
+  contrast,
+  LOOK,
+  toLab,
+  undertoneOf,
+  verdict,
+  warmth,
+  type FaceColors,
+  type Shade,
+  type Slot as LookSlot,
+  type Warmth,
+} from '@/lib/color';
 
-type Phase = 'photo' | 'verdict' | 'sheet' | 'detail';
+type Phase = 'photo' | 'verdict' | 'face' | 'sheet' | 'detail';
 type Tile = { state: 'pending' | 'done' | 'failed'; url?: string; error?: string };
 type Slot = 'selfie' | 'body';
+
+const LOOK_SLOTS: LookSlot[] = ['lipOk', 'lipNo', 'hairOk', 'hairNo'];
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -69,6 +82,9 @@ export default function Page() {
   const [busy, setBusy] = useState(false);
   const [colors, setColors] = useState<FaceColors | null>(null);
   const [bodyId, setBodyId] = useState<string | null>(null);
+  const [selfieId, setSelfieId] = useState<string | null>(null);
+  const [look, setLook] = useState<Record<string, Tile>>({});
+  const lookStarted = useRef(false);
   const [tiles, setTiles] = useState<Record<string, Tile>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [readAt, setReadAt] = useState('');
@@ -147,6 +163,7 @@ export default function Page() {
 
     setColors(json.colors as FaceColors);
     setBodyId(json.bodyId as string);
+    setSelfieId(json.selfieId as string);
     setTiles(Object.fromEntries(CATALOG.map((g) => [g.id, { state: 'pending' as const }])));
     setReadAt(
       new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -158,6 +175,37 @@ export default function Page() {
 
   async function runAll(id: string) {
     await Promise.all(CATALOG.map((g) => runOne(id, g)));
+  }
+
+  // Four tasks, one per print, so the comparison fills in rather than appearing
+  // all at once. Started lazily: a visitor who never opens this screen costs
+  // nothing, and four units per session is the whole budget for it.
+  function openFace() {
+    setPhase('face');
+    if (lookStarted.current || !selfieId) return;
+    lookStarted.current = true;
+    void runLook(selfieId, undertone);
+  }
+
+  async function runLook(id: string, tone: Warmth) {
+    await Promise.all(
+      LOOK_SLOTS.map(async (slot) => {
+        setLook((l) => ({ ...l, [slot]: { state: 'pending' } }));
+        try {
+          const res = await fetch('/api/look', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selfieId: id, undertone: tone, slot }),
+          });
+          if (!res.ok) throw new Error('failed');
+          const url = URL.createObjectURL(await res.blob());
+          urls.current.push(url);
+          setLook((l) => ({ ...l, [slot]: { state: 'done', url } }));
+        } catch (e) {
+          setLook((l) => ({ ...l, [slot]: { state: 'failed', error: (e as Error).message } }));
+        }
+      }),
+    );
   }
 
   async function runOne(id: string, g: Garment) {
@@ -198,6 +246,9 @@ export default function Page() {
     setDropError({ selfie: null, body: null });
     setColors(null);
     setBodyId(null);
+    setSelfieId(null);
+    setLook({});
+    lookStarted.current = false;
     setTiles({});
     setSelected(null);
     setError(null);
@@ -225,6 +276,15 @@ export default function Page() {
       <span className="sep">·</span>
       <button
         type="button"
+        onClick={openFace}
+        disabled={!colors}
+        aria-current={phase === 'face' ? 'step' : undefined}
+      >
+        face
+      </button>
+      <span className="sep">·</span>
+      <button
+        type="button"
         onClick={() => colors && setPhase('sheet')}
         disabled={!colors}
         aria-current={phase === 'sheet' ? 'step' : undefined}
@@ -244,7 +304,9 @@ export default function Page() {
     <>
       <header className="topstrip">
         <span className="wordmark">Second Opinion</span>
-        <span className="apistrip">YouCam Skin AI · Clothes VTO · 14 garments per sheet</span>
+        <span className="apistrip">
+          YouCam Skin AI · Clothes VTO · Makeup VTO · Hair Color
+        </span>
       </header>
 
       {phase === 'photo' && (
@@ -328,7 +390,9 @@ export default function Page() {
                 <br />
                 cloth-v4 ×14
                 <br />
-                28 units
+                makeup-vto ×2 · hair-color ×2
+                <br />
+                32 units
               </p>
             </aside>
           </div>
@@ -388,8 +452,11 @@ export default function Page() {
                 <button type="button" className="btn-primary" onClick={() => setPhase('sheet')}>
                   Open the sheet
                 </button>
-                <button type="button" className="btn-secondary" onClick={reset}>
-                  Try other photos
+                <button type="button" className="btn-secondary" onClick={openFace}>
+                  Then above the collar
+                </button>
+                <button type="button" className="btn-text" onClick={reset}>
+                  other photos
                 </button>
               </div>
 
@@ -460,6 +527,73 @@ export default function Page() {
               </div>
             </div>
           </section>
+        </main>
+      )}
+
+      {phase === 'face' && colors && (
+        <main className="shell">
+          {crumbs}
+
+          <div className="face-grid">
+            <div className="look-grid">
+              <LookPrint
+                kind="Lip"
+                works
+                shade={LOOK[undertone].lipOk}
+                tile={look.lipOk}
+              />
+              <LookPrint
+                kind="Lip"
+                works={false}
+                shade={LOOK[undertone].lipNo}
+                tile={look.lipNo}
+              />
+              <LookPrint
+                kind="Hair"
+                works
+                shade={LOOK[undertone].hairOk}
+                tile={look.hairOk}
+              />
+              <LookPrint
+                kind="Hair"
+                works={false}
+                shade={LOOK[undertone].hairNo}
+                tile={look.hairNo}
+              />
+            </div>
+
+            <aside className="face-aside">
+              <p className="mono subject-line">
+                subject 01 · {readAt} · {undertone} undertone
+              </p>
+              <h1 className="verdict-lg">Same rule, above the collar.</h1>
+              <p className="body-muted">
+                The sheet reads your skin against cloth. These read it against colour worn on the
+                face. Left column is your own temperature; right column is the same shade pulled
+                across the line. The stamp marks the family, not the prettiness — judge the
+                difference yourself.
+              </p>
+
+              <div className="method">
+                <p className="label">Why these four</p>
+                <p className="caption body-muted">
+                  Both hex values are chosen on the server from your undertone and sent to YouCam as
+                  raw colour — no preset, no filter. The labels sit under each print so the
+                  comparison is seen before it is read.
+                </p>
+                <p className="mono method-figures">
+                  makeup-vto ×2
+                  <br />
+                  hair-color ×2
+                  <br />4 units
+                </p>
+              </div>
+
+              <button type="button" className="btn-primary" onClick={() => setPhase('sheet')}>
+                Now the fourteen
+              </button>
+            </aside>
+          </div>
         </main>
       )}
 
@@ -567,7 +701,9 @@ export default function Page() {
               <br />
               cloth-v4 ×{CATALOG.length}
               <br />
-              {CATALOG.length * 2} units
+              makeup-vto ×2 · hair-color ×2
+              <br />
+              {CATALOG.length * 2 + 4} units
             </p>
           </div>
         </main>
@@ -587,8 +723,43 @@ export default function Page() {
   );
 }
 
-function Swatch({ hex, label, muted }: { hex: string; label: string; muted?: boolean }) {
+function LookPrint({
+  kind,
+  works,
+  shade,
+  tile,
+}: {
+  kind: string;
+  works: boolean;
+  shade: Shade;
+  tile?: Tile;
+}) {
+  const s = specimen(shade.hex);
   return (
+    <figure className="look-fig">
+      <div className={works ? 'look-print' : 'look-print is-against'}>
+        {tile?.state === 'done' && <img src={tile.url} alt={`${shade.name} ${kind.toLowerCase()} on your close-up`} />}
+        {tile?.state !== 'done' && (
+          <span className="look-wait">
+            {tile?.state === 'failed' ? 'this one failed' : 'reading…'}
+          </span>
+        )}
+        {!works && tile?.state === 'done' && <span className="stamp">Across the line</span>}
+      </div>
+      <figcaption>
+        <p className="mono look-kind">
+          {kind} · {works ? 'in your family' : 'across the line'}
+        </p>
+        <p className="caption">{shade.name}</p>
+        <p className="mono">
+          {shade.hex.toUpperCase()} · hue {s.hue}° · {warmth(shade.hex)}
+        </p>
+      </figcaption>
+    </figure>
+  );
+}
+
+function Swatch({ hex, label, muted }: { hex: string; label: string; muted?: boolean }) {  return (
     <div className="swatch">
       <i style={{ background: hex }} />
       <span className="label">{label}</span>

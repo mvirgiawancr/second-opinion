@@ -1,5 +1,7 @@
 export type Warmth = 'warm' | 'cool' | 'neutral';
 export type Contrast = 'high' | 'medium' | 'low';
+export type Slot = 'lipOk' | 'lipNo' | 'hairOk' | 'hairNo';
+export type Shade = { name: string; hex: string };
 
 export type FaceColors = {
   skin_color: string;
@@ -72,6 +74,38 @@ export function verdict(garmentHex: string, skinHex: string, undertone: Warmth):
   return { works: true, reason: `holds its own against your skin, ${undertone} family` };
 }
 
+// The same rule above the collar: a lip and a hair colour in the user's own
+// temperature, and the same two pushed the other way. The hexes are hand-picked
+// — a stylist's table, not arithmetic — but every claim the screen makes about
+// them is computed, and the self-check below asserts that each "ok" shade really
+// is in the user's family and each "no" shade really is not.
+export const LOOK: Record<Warmth, Record<Slot, Shade>> = {
+  warm: {
+    lipOk: { name: 'Brick', hex: '#9C4A3C' },
+    lipNo: { name: 'Fuchsia', hex: '#C2185B' },
+    hairOk: { name: 'Copper', hex: '#A8542A' },
+    hairNo: { name: 'Blue-black', hex: '#3A3A5C' },
+  },
+  cool: {
+    lipOk: { name: 'Blue-red', hex: '#B03A5E' },
+    lipNo: { name: 'Terracotta', hex: '#D2703A' },
+    hairOk: { name: 'Blue-black', hex: '#3A3A5C' },
+    hairNo: { name: 'Copper', hex: '#A8542A' },
+  },
+  // Neutral carries either temperature, so this pair is chosen for how much of a
+  // statement it is rather than which side of the line it falls on.
+  neutral: {
+    lipOk: { name: 'Rosewood', hex: '#A85540' },
+    lipNo: { name: 'Violet', hex: '#8E5AA8' },
+    hairOk: { name: 'Espresso', hex: '#33262A' },
+    hairNo: { name: 'Blue-black', hex: '#3A3A5C' },
+  },
+};
+
+export const SLOTS: Slot[] = ['lipOk', 'lipNo', 'hairOk', 'hairNo'];
+
+export const isSlot = (v: unknown): v is Slot => SLOTS.includes(v as Slot);
+
 // --- self-check: node lib/color.ts ---------------------------------------
 if (process.argv[1]?.endsWith('color.ts')) {
   let n = 0;
@@ -108,5 +142,20 @@ if (process.argv[1]?.endsWith('color.ts')) {
     'beige too close to skin is rejected for that reason',
   );
 
-  console.log(`\n${n} colour checks pass`);
-}
+  for (const undertone of ['warm', 'cool'] as const) {
+    const t = LOOK[undertone];
+    assert(warmth(t.lipOk.hex) === undertone, `${undertone}: ${t.lipOk.name} lip is in the family`);
+    assert(warmth(t.lipNo.hex) !== undertone, `${undertone}: ${t.lipNo.name} lip is not`);
+    assert(warmth(t.hairOk.hex) === undertone, `${undertone}: ${t.hairOk.name} hair is in the family`);
+    assert(warmth(t.hairNo.hex) !== undertone, `${undertone}: ${t.hairNo.name} hair is not`);
+  }
+  assert(
+    warmth(LOOK.neutral.lipOk.hex) !== warmth(LOOK.neutral.lipNo.hex),
+    'neutral: the lip pair differs in family',
+  );
+  assert(
+    warmth(LOOK.neutral.hairOk.hex) !== warmth(LOOK.neutral.hairNo.hex),
+    'neutral: the hair pair differs in family',
+  );
+
+  console.log(`\n${n} colour checks pass`);}

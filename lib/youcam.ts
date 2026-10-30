@@ -69,6 +69,46 @@ export async function analyzeFace(fileId: string): Promise<FaceColors> {
   return data.results.color as FaceColors;
 }
 
+/** The download URL expires in two hours, so the bytes are pulled immediately. */
+async function bytesOf(data: any): Promise<Buffer> {
+  const url = resultUrl(data);
+  if (!url) throw new YouCamError('no_result');
+  const res = await fetch(url);
+  if (!res.ok) throw new YouCamError('download_failed', `${res.status}`);
+  return Buffer.from(await res.arrayBuffer());
+}
+
+/**
+ * Lip colour on the close-up. `shape` comes from lipshape.json and `style` is
+ * required by the schema even for a flat fill; the palette hex is the whole
+ * point, so no preset is used anywhere in this product.
+ */
+export async function tryOnMakeup(fileId: string, lip: string): Promise<Buffer> {
+  const { task_id } = await api<any>('POST', '/s2s/v2.0/task/makeup-vto', {
+    src_file_id: fileId,
+    version: '1.0',
+    effects: [
+      {
+        category: 'lip_color',
+        shape: { name: 'original' },
+        style: { type: 'full' },
+        palettes: [{ color: lip, texture: 'matte', colorIntensity: 65 }],
+      },
+    ],
+  });
+  return bytesOf(await poll(`/s2s/v2.0/task/makeup-vto/${task_id}`));
+}
+
+/** Hair colour on the close-up. Note the snake_case fields: this API differs. */
+export async function tryOnHair(fileId: string, color: string): Promise<Buffer> {
+  const { task_id } = await api<any>('POST', '/s2s/v2.0/task/hair-color', {
+    src_file_id: fileId,
+    pattern: { name: 'full' },
+    palettes: [{ color, color_intensity: 90, shine_intensity: 35 }],
+  });
+  return bytesOf(await poll(`/s2s/v2.0/task/hair-color/${task_id}`));
+}
+
 // Catalogue garments are uploaded once per instance and their file ids reused.
 const refIds = new Map<string, string>();
 
@@ -96,11 +136,7 @@ export async function tryOn(bodyId: string, garmentId: string, category: string)
     filter_multi_person: 'strict',
   });
   const data = await poll(`/s2s/v2.0/task/cloth-v4/${task_id}`);
-  const url = resultUrl(data);
-  if (!url) throw new YouCamError('no_result');
-  const res = await fetch(url);
-  if (!res.ok) throw new YouCamError('download_failed', `${res.status}`);
-  return Buffer.from(await res.arrayBuffer());
+  return bytesOf(data);
 }
 
 export const hasKey = () => KEY.length > 0;
