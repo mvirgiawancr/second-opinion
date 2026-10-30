@@ -1,10 +1,16 @@
-// One real try-on for the landing page: the demo subject in the navy oxford,
-// which the maths rejects. Run: node spike/example.mjs
+// Real try-ons for the landing page. Run: node spike/example.mjs rust-overshirt oat-trench
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const API = 'https://yce-api-01.makeupar.com';
+const CATEGORY = {
+  'rust-overshirt': 'outer',
+  'oat-trench': 'full_body',
+  'navy-oxford': 'upper_body',
+  'mustard-cord': 'upper_body',
+  'olive-shirt': 'upper_body',
+};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let KEY = '';
 for (const line of (await readFile(path.join(ROOT, '.env.local'), 'utf8')).split(/\r?\n/)) {
@@ -44,22 +50,23 @@ async function poll(url) {
 }
 
 const body = await upload(path.join(ROOT, 'public', 'demo', 'body.jpg'));
-const ref = await upload(path.join(ROOT, 'public', 'catalog', 'navy-oxford.jpg'));
-console.log('uploaded');
-
-const t = await api('POST', '/s2s/v2.0/task/cloth-v4', {
-  src_file_id: body,
-  ref_file_id: ref,
-  garment_category: 'upper_body',
-  filter_multi_person: 'strict',
-});
-const d = await poll(`/s2s/v2.0/task/cloth-v4/${t.data.task_id}`);
-const url = typeof d?.results === 'string' ? d.results : (d?.results?.url ?? d?.url);
-if (!url) {
-  console.log(d.task_status, d.error);
-  process.exit(1);
-}
-const img = await fetch(url);
 await mkdir(path.join(ROOT, 'public', 'example'), { recursive: true });
-await writeFile(path.join(ROOT, 'public', 'example', 'navy-rejected.jpg'), Buffer.from(await img.arrayBuffer()));
-console.log('wrote public/example/navy-rejected.jpg');
+
+for (const id of process.argv.slice(2)) {
+  const ref = await upload(path.join(ROOT, 'public', 'catalog', `${id}.jpg`));
+  const t = await api('POST', '/s2s/v2.0/task/cloth-v4', {
+    src_file_id: body,
+    ref_file_id: ref,
+    garment_category: CATEGORY[id],
+    filter_multi_person: 'strict',
+  });
+  const d = await poll(`/s2s/v2.0/task/cloth-v4/${t.data.task_id}`);
+  const url = typeof d?.results === 'string' ? d.results : (d?.results?.url ?? d?.url);
+  if (!url) {
+    console.log(id, d.task_status, d.error);
+    continue;
+  }
+  const img = await fetch(url);
+  await writeFile(path.join(ROOT, 'public', 'example', `${id}.jpg`), Buffer.from(await img.arrayBuffer()));
+  console.log(id, 'ok');
+}

@@ -23,6 +23,17 @@ const LOOK_SLOTS: LookSlot[] = ['lipOk', 'lipNo', 'hairOk', 'hairNo'];
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
+// Five real try-ons, placed around the headline. Numbers are the sheet's own, so
+// the landing page and the casting sheet are the same document. Rotations are
+// hand-set: a random one would drift between server and client renders.
+const HERO_PRINTS = [
+  { src: '/example/rust-overshirt.jpg', n: 1, name: 'rust linen overshirt', where: 'p1' },
+  { src: '/example/navy-rejected.jpg', n: 3, name: 'navy oxford', where: 'p2', rejected: true },
+  { src: '/example/olive-shirt.jpg', n: 4, name: 'olive cotton shirt', where: 'p3' },
+  { src: '/example/oat-trench.jpg', n: 13, name: 'oatmeal trench coat', where: 'p4' },
+  { src: '/example/mustard-cord.jpg', n: 9, name: 'mustard corduroy shirt', where: 'p5' },
+];
+
 const SLOTS: { key: Slot; label: string; hint: string; demo: string }[] = [
   {
     key: 'body',
@@ -312,70 +323,99 @@ export default function Page() {
       {phase === 'photo' && (
         <main className="shell">
           {crumbs}
-          <div className="upload-head">
-            <div className="upload-copy">
-              <h1 className="verdict-xl">Somebody has to tell you no.</h1>
-              <p className="lead body-muted">
-                Two photos: we read your colouring, then put fourteen garments on your own body and
+          <section className="hero">
+            <div className="hero-prints" aria-hidden="true">
+              {HERO_PRINTS.map((p) => (
+                <figure key={p.src} className={`hero-print ${p.where}`}>
+                  <img src={p.src} alt="" loading="eager" />
+                  {p.rejected && <span className="stamp">Not your colour</span>}
+                  <span className="hero-tag">{pad(p.n)}</span>
+                </figure>
+              ))}
+            </div>
+
+            <div className="hero-center">
+              <h1 className="hero-title">Somebody has to tell you no.</h1>
+              <p className="hero-lead">
+                Two photos. We read your colouring, then put fourteen garments on your own body and
                 stamp the ones that will not do you any favours — with the reason.
               </p>
-            </div>
-            {/* A real result, on the landing page, before anything is uploaded.
-                "Trust us" is a weak claim; showing the stamp is the whole pitch. */}
-            <figure className="upload-example">
-              <div className="example-print">
-                <img src="/example/navy-rejected.jpg" alt="The demo subject in the navy oxford" />
-                <span className="stamp">Not your colour</span>
+
+              <div className="hero-slots">
+                {SLOTS.map((slot) => (
+                  <label
+                    key={slot.key}
+                    className={[
+                      'drop',
+                      'drop-compact',
+                      previews[slot.key] ? 'drop-filled' : '',
+                      dragging === slot.key ? 'is-dragging' : '',
+                      dropError[slot.key] ? 'has-error' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragging(slot.key);
+                    }}
+                    onDragLeave={() => setDragging(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragging(null);
+                      setSlot(slot.key, e.dataTransfer.files[0] ?? null);
+                    }}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setSlot(slot.key, e.target.files?.[0] ?? null)}
+                    />
+                    {previews[slot.key] && <img src={previews[slot.key]!} alt="" />}
+                    <span className="drop-text">
+                      <span className="label">{slot.label}</span>
+                      <span className="drop-hint">
+                        {dropError[slot.key] ?? (previews[slot.key] ? 'replace' : slot.hint)}
+                      </span>
+                    </span>
+                  </label>
+                ))}
               </div>
-              <figcaption className="mono">
-                03 navy oxford · rejected · fights a warm undertone
-              </figcaption>
-            </figure>
-          </div>
 
-          <div className="drop-row">
-            {SLOTS.map((slot) => (
-              <label
-                key={slot.key}
-                className={[
-                  'drop',
-                  previews[slot.key] ? 'drop-filled' : '',
-                  dragging === slot.key ? 'is-dragging' : '',
-                  dropError[slot.key] ? 'has-error' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragging(slot.key);
-                }}
-                onDragLeave={() => setDragging(null)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setDragging(null);
-                  setSlot(slot.key, e.dataTransfer.files[0] ?? null);
-                }}
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setSlot(slot.key, e.target.files?.[0] ?? null)}
-                />
-                {previews[slot.key] && <img src={previews[slot.key]!} alt="" />}
-                <span className="drop-text">
-                  <span className="label">{slot.label}</span>
-                  <span className="drop-hint">
-                    {dropError[slot.key] ?? (previews[slot.key] ? 'Click to replace' : slot.hint)}
-                  </span>
-                </span>
-              </label>
-            ))}
+              <div className="hero-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={start}
+                  disabled={!ready || busy}
+                >
+                  {busy ? 'Reading your colouring…' : 'Read my colouring'}
+                </button>
+                {/* When no photos are chosen, the demo is the path people actually
+                    take, so it carries the primary weight instead of sitting
+                    greyed out beside a disabled button. */}
+                <button
+                  type="button"
+                  className={ready ? 'btn-secondary' : 'btn-primary'}
+                  onClick={useDemo}
+                  disabled={busy}
+                >
+                  Use the demo subject
+                </button>
+              </div>
 
-            {/* The third column is the receipt: what happens to the photos, and
-                how the verdict is decided. Empty space with no information in it
-                is not calm, it is unfinished. */}
-            <aside className="method">
-              <p className="label">How it is read</p>
+              <p className="why hero-why">
+                {ready
+                  ? 'Fourteen try-ons take about half a minute.'
+                  : 'Both photos are needed: colour is read from the close-up, garments go on the full-body shot.'}
+              </p>
+
+              {error && <p className="notice">{error}</p>}
+            </div>
+          </section>
+
+          <aside className="hero-read">
+            <p className="label">How it is read</p>
+            <div className="hero-read-prose">
               <p className="caption body-muted">
                 Skin and lip colour come from YouCam Skin AI. Garment colours are sampled from the
                 catalogue photograph itself, then compared in CIELAB: hue angle decides temperature,
@@ -385,33 +425,17 @@ export default function Page() {
                 Nothing is scored by a language model, and nothing is invented: every number on the
                 sheet comes from a returned hex value.
               </p>
-              <p className="mono method-figures">
-                skin-tone-analysis ×1
-                <br />
-                cloth-v4 ×14
-                <br />
-                makeup-vto ×2 · hair-color ×2
-                <br />
-                32 units
-              </p>
-            </aside>
-          </div>
-
-          <div className="upload-actions">
-            <button type="button" className="btn-primary" onClick={start} disabled={!ready || busy}>
-              {busy ? 'Reading your colouring…' : 'Read my colouring'}
-            </button>
-            <button type="button" className="btn-text" onClick={useDemo} disabled={busy}>
-              no photos? use the demo subject
-            </button>
-            <span className="why">
-              {ready
-                ? 'Fourteen try-ons take about half a minute.'
-                : 'Both photos are needed: colour is read from the close-up, garments go on the full-body shot.'}
-            </span>
-          </div>
-
-          {error && <p className="notice">{error}</p>}
+            </div>
+            <p className="mono method-figures">
+              skin-tone-analysis ×1
+              <br />
+              cloth-v4 ×14
+              <br />
+              makeup-vto ×2 · hair-color ×2
+              <br />
+              32 units
+            </p>
+          </aside>
 
           {/* The wardrobe, shown before it is asked for: the user should know what
               fourteen garments means before handing over a photo. */}
