@@ -389,12 +389,16 @@ button {
   height: 100%;
 }
 
+/* Contain, not cover: a full-body shot is taller than the slot, and cropping the
+   head off the preview reads as if the upload itself got mangled. The photo sits
+   on paper instead, like every other print in the app. */
 .drop img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--paper-print);
 }
 
 .drop-text {
